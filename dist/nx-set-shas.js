@@ -22850,6 +22850,7 @@ async function findSuccessfulCommit(workflow_id, run_id, owner2, repo2, branch, 
   return await findExistingCommit(octokit, branch, shas);
 }
 async function findExistingCommit(octokit, branchName, shas) {
+  process.stdout.write(`There are ${shas.length} commits for ${branchName}`);
   for (const commitSha of shas) {
     if (await commitExists(octokit, branchName, commitSha)) {
       return commitSha;
@@ -22886,7 +22887,9 @@ async function commitExists(octokit, branchName, commitSha) {
       return response.data;
     });
     return commitFound;
-  } catch {
+  } catch (error) {
+    process.stdout.write(`There was an error while checking for commit: 
+` + error.message);
     return false;
   }
 }

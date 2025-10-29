@@ -227,6 +227,7 @@ async function findExistingCommit(
   branchName: string,
   shas: string[],
 ): Promise<string | undefined> {
+  process.stdout.write(`There are ${shas.length} commits for ${branchName}`);
   for (const commitSha of shas) {
     if (await commitExists(octokit, branchName, commitSha)) {
       return commitSha;
@@ -287,7 +288,10 @@ async function commitExists(
     );
 
     return commitFound;
-  } catch {
+  } catch (error) {
+    process.stdout.write(
+      'There was an error while checking for commit: \n' + error.message,
+    );
     return false;
   }
 }
