@@ -22841,9 +22841,11 @@ async function findSuccessfulCommit(workflow_id, run_id, owner2, repo2, branch, 
   }
   process.stdout.write(`
 `);
-  process.stdout.write(`Fetching runs all the runs for last successfull events.
+  process.stdout.write(`Fetching runs all the runs for last successful events.
 `);
   process.stdout.write(`Last successful event: ${lastSuccessfulEvent2}
+`);
+  process.stdout.write(`The Branch is ${branch}
 `);
   process.stdout.write(`
 `);

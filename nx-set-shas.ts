@@ -197,9 +197,10 @@ async function findSuccessfulCommit(
   // fetch all workflow runs on a given repo/branch/workflow with push and success
   process.stdout.write('\n');
   process.stdout.write(
-    'Fetching runs all the runs for last successfull events.\n',
+    'Fetching runs all the runs for last successful events.\n',
   );
   process.stdout.write(`Last successful event: ${lastSuccessfulEvent}\n`);
+  process.stdout.write(`The Branch is ${branch}\n`);
   process.stdout.write('\n');
   const shas = await octokit
     .paginate(
