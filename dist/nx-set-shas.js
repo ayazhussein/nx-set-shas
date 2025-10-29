@@ -22828,25 +22828,34 @@ function reportFailure(branchName) {
 async function findSuccessfulCommit(workflow_id, run_id, owner2, repo2, branch, lastSuccessfulEvent2) {
   const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
   if (!workflow_id) {
-    workflow_id = await octokit.request(`GET /repos/${owner2}/${repo2}/actions/runs/${run_id}`, {
+    workflow_id = await octokit.request(`GET /repos/{owner}/{repo}/actions/runs/{run_id}`, {
       owner: owner2,
       repo: repo2,
       branch,
       run_id
-    }).then(({ data: { workflow_id: workflow_id2 } }) => workflow_id2);
+    }).then(({ data: { workflow_id: workflow_id2 } }) => workflow_id2.toString());
     process.stdout.write(`
 `);
     process.stdout.write(`Workflow Id not provided. Using workflow '${workflow_id}'
 `);
   }
-  const shas = await octokit.request(`GET /repos/${owner2}/${repo2}/actions/workflows/${workflow_id}/runs`, {
+  process.stdout.write(`
+`);
+  process.stdout.write(`Fetching runs all the runs for last successfull events.
+`);
+  process.stdout.write(`Last successful event: ${lastSuccessfulEvent2}
+`);
+  process.stdout.write(`
+`);
+  const shas = await octokit.paginate(`GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`, {
     owner: owner2,
     repo: repo2,
     branch: lastSuccessfulEvent2 === "push" || lastSuccessfulEvent2 === "workflow_dispatch" ? branch : undefined,
     workflow_id,
+    per_page: 100,
     event: lastSuccessfulEvent2,
     status: "success"
-  }).then(({ data: { workflow_runs } }) => workflow_runs.map((run) => run.head_sha));
+  }).then((workflow_runs) => workflow_runs.map((run) => run.head_sha));
   return await findExistingCommit(octokit, branch, shas);
 }
 async function findExistingCommit(octokit, branchName, shas) {

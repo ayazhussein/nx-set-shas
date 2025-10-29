@@ -182,22 +182,28 @@ async function findSuccessfulCommit(
   const octokit = github.getOctokit(process.env.GITHUB_TOKEN);
   if (!workflow_id) {
     workflow_id = await octokit
-      .request(`GET /repos/${owner}/${repo}/actions/runs/${run_id}`, {
+      .request(`GET /repos/{owner}/{repo}/actions/runs/{run_id}`, {
         owner,
         repo,
         branch,
         run_id,
       })
-      .then(({ data: { workflow_id } }) => workflow_id);
+      .then(({ data: { workflow_id } }) => workflow_id.toString());
     process.stdout.write('\n');
     process.stdout.write(
       `Workflow Id not provided. Using workflow '${workflow_id}'\n`,
     );
   }
   // fetch all workflow runs on a given repo/branch/workflow with push and success
+  process.stdout.write('\n');
+  process.stdout.write(
+    'Fetching runs all the runs for last successfull events.\n',
+  );
+  process.stdout.write(`Last successful event: ${lastSuccessfulEvent}\n`);
+  process.stdout.write('\n');
   const shas = await octokit
-    .request(
-      `GET /repos/${owner}/${repo}/actions/workflows/${workflow_id}/runs`,
+    .paginate(
+      `GET /repos/{owner}/{repo}/actions/workflows/{workflow_id}/runs`,
       {
         owner,
         repo,
@@ -208,11 +214,12 @@ async function findSuccessfulCommit(
             ? branch
             : undefined,
         workflow_id,
+        per_page: 100,
         event: lastSuccessfulEvent,
         status: 'success',
       },
     )
-    .then(({ data: { workflow_runs } }) =>
+    .then((workflow_runs) =>
       workflow_runs.map((run: { head_sha: any }) => run.head_sha),
     );
 
