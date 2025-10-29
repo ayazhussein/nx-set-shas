@@ -22867,13 +22867,25 @@ async function commitExists(octokit, branchName, commitSha) {
       repo,
       commit_sha: commitSha
     });
-    const commits = await octokit.request("GET /repos/{owner}/{repo}/commits", {
+    let maxPages = 20;
+    let commitFound = false;
+    await octokit.paginate("GET /repos/{owner}/{repo}/commits", {
       owner,
       repo,
       sha: branchName,
       per_page: 100
+    }, (response, done) => {
+      if (response.data.some((commit) => commit.sha === commitSha)) {
+        commitFound = true;
+        done();
+      }
+      if (maxPages <= 1) {
+        done();
+      }
+      maxPages--;
+      return response.data;
     });
-    return commits.data.some((commit) => commit.sha === commitSha);
+    return commitFound;
   } catch {
     return false;
   }
